@@ -1,5 +1,5 @@
-const cookieName = 'V2EX'
-const cookieKey = 'chavy_cookie_v2ex'
+const cookieName = '什么值得买'
+const cookieKey = 'chavy_cookie_smzdm'
 const cookieVal = $request.headers['Cookie']
 
 if (cookieVal) {
