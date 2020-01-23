@@ -1,30 +1,47 @@
-# 百度贴吧
+# bilibili
+
+> 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
+
+> 目前只签 bilibili 直播 (直播!直播!直播!)
 
 > 2020.1.11 QuanX 在`190`版本开始, 获取 Cookie 方式需要从`script-response-body`改为`script-request-header`
 
-## 配置
+## 配置 (Surge)
 
 ```properties
 [MITM]
-*.v2ex.com
+*.bilibili.com
+
+[Script]
+http-request ^https:\/\/(www|live)\.bilibili\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bilibili/bilibili.cookie.js
+cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bilibili/bilibili.js
+```
+
+## 配置 (QuanX)
+
+```properties
+[MITM]
+*.bilibili.com
 
 [rewrite_local]
 # 189及以前版本
-^https:\/\/www\.v2ex\.com\/mission\/daily url script-response-body v2ex.cookie.js
+^https:\/\/(www|live)\.bilibili\.com\/?.? url script-response-body bilibili.cookie.js
 # 190及以后版本
-^https:\/\/www\.v2ex\.com\/mission\/daily url script-request-header v2ex.cookie.js
+^https:\/\/(www|live)\.bilibili\.com\/?.? url script-request-header bilibili.cookie.js
 
 [task_local]
-1 0 * * * v2ex.js
+1 0 * * * bilibili.js
 ```
 
 ## 说明
 
-1. 先把`*.v2ex.com`加到`[MITM]`
-2. 再把两条远程脚本放到`[Script]`
-3. 先在浏览器登录 `(先登录! 先登录! 先登录!)`
-4. 打开浏览器访问: https://www.v2ex.com/mission/daily
-5. `QuanX`提示: `Cookie [V2EX] 写入成功` (如果提示多条写入成功，忽略就好)
+1. 先在浏览器登录 `(先登录! 先登录! 先登录!)`
+2. 先把`*.bilibili.com`加到`[MITM]`
+3. 再配置重写规则:
+   - Surge: 把两条远程脚本放到`[Script]`
+   - QuanX: 把`bilibili.cookie.js`和`bilibili.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
+4. 打开浏览器访问: https://www.bilibili.com 或 https://live.bilibili.com
+5. 系统提示: `获取Cookie: 成功`
 6. 最后就可以把第 1 条脚本注释掉了
 
 > 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
@@ -35,7 +52,7 @@
 
 1. 无法写入 Cookie
 
-   - 检查 QuanX 系统通知权限放开了没
+   - 检查 Surge 系统通知权限放开了没
    - 如果你用的是 Safari, 请尝试在浏览地址栏`手动输入网址`(不要用复制粘贴)
 
 2. 写入 Cookie 成功, 但签到不成功

@@ -1,20 +1,23 @@
-const cookieName = '百度贴吧'
-const cookieKey = 'chavy_cookie_tieba'
-const chavy = init()
-const cookieVal = $request.headers['Cookie']
+/**
+ * Cookie 心跳
+ * 尝试每2小时运行一次本脚本来保持Cookie的活性 (效果待验证)
+ */
 
-if (cookieVal.indexOf('BDUSS') > 0) {
-  let cookie = chavy.setdata(cookieVal, cookieKey)
-  if (cookie) {
-    let subTitle = '获取Cookie: 成功'
-    chavy.msg(`${cookieName}`, subTitle, '')
-    chavy.log(`[${cookieName}] ${subTitle}, cookie: ${cookieVal}`)
-  }
-} else {
-  let subTitle = '获取Cookie: 失败'
-  let detail = `请确保在已登录状态下获取Cookie`
-  chavy.msg(`${cookieName}`, subTitle, detail)
-  chavy.log(`[${cookieName}] ${subTitle}, cookie: ${cookieVal}`)
+const cookieName = '腾讯视频'
+const cookieKey = 'chavy_cookie_videoqq'
+const chavy = init()
+const cookieVal = chavy.getdata(cookieKey)
+
+keep()
+
+function keep() {
+  const timestamp = Date.parse(new Date())
+  let url = { url: `https://vip.video.qq.com/fcgi-bin/comm_cgi?name=spp_PropertyNum&cmd=1&growth_value=1&otype=json&_=${timestamp}`, headers: { Cookie: cookieVal } }
+  url.headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15'
+  chavy.get(url, (error, response, data) => {
+    chavy.log(`[${cookieName} 心跳], data: ${data}`)
+  })
+  chavy.done()
 }
 
 function init() {
@@ -60,5 +63,3 @@ function init() {
   }
   return { isSurge, isQuanX, msg, log, getdata, setdata, get, post, done }
 }
-
-chavy.done()

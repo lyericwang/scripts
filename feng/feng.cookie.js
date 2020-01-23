@@ -1,14 +1,13 @@
-const cookieName = '百度贴吧'
-const cookieKey = 'chavy_cookie_tieba'
+const cookieName = '威锋网'
+const cookieKey = 'chavy_cookie_feng'
 const chavy = init()
 const cookieVal = $request.headers['Cookie']
-
-if (cookieVal.indexOf('BDUSS') > 0) {
-  let cookie = chavy.setdata(cookieVal, cookieKey)
-  if (cookie) {
-    let subTitle = '获取Cookie: 成功'
-    chavy.msg(`${cookieName}`, subTitle, '')
-    chavy.log(`[${cookieName}] ${subTitle}, cookie: ${cookieVal}`)
+if (cookieVal.indexOf('userInfo') >= 0) {
+  if (cookieVal) {
+    if (chavy.setdata(cookieVal, cookieKey)) {
+      chavy.msg(`${cookieName}`, '获取Cookie: 成功', '')
+      chavy.log(`[${cookieName}] 获取Cookie: 成功, cookie: ${cookieVal}`)
+    }
   }
 } else {
   let subTitle = '获取Cookie: 失败'
@@ -16,7 +15,6 @@ if (cookieVal.indexOf('BDUSS') > 0) {
   chavy.msg(`${cookieName}`, subTitle, detail)
   chavy.log(`[${cookieName}] ${subTitle}, cookie: ${cookieVal}`)
 }
-
 function init() {
   isSurge = () => {
     return undefined === this.$httpClient ? false : true
@@ -60,5 +58,4 @@ function init() {
   }
   return { isSurge, isQuanX, msg, log, getdata, setdata, get, post, done }
 }
-
 chavy.done()

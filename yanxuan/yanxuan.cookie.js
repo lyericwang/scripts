@@ -1,20 +1,29 @@
-const cookieName = '百度贴吧'
-const cookieKey = 'chavy_cookie_tieba'
+const cookieName = '网易严选'
+const cookieKey = 'chavy_cookie_yanxuan'
+const tokenKey = 'chavy_token_yanxuan'
 const chavy = init()
 const cookieVal = $request.headers['Cookie']
-
-if (cookieVal.indexOf('BDUSS') > 0) {
-  let cookie = chavy.setdata(cookieVal, cookieKey)
-  if (cookie) {
-    let subTitle = '获取Cookie: 成功'
-    chavy.msg(`${cookieName}`, subTitle, '')
-    chavy.log(`[${cookieName}] ${subTitle}, cookie: ${cookieVal}`)
+if (cookieVal.indexOf('yx_csrf') > 0) {
+  if (chavy.setdata(cookieVal, cookieKey)) {
+    chavy.msg(`${cookieName}`, '获取Cookie: 成功', '')
+    chavy.log(`[${cookieName}] 获取Cookie: 成功, cookie: ${cookieVal}`)
   }
 } else {
-  let subTitle = '获取Cookie: 失败'
-  let detail = `请确保在已登录状态下获取Cookie`
-  chavy.msg(`${cookieName}`, subTitle, detail)
+  chavy.msg(`${cookieName}`, '获取Cookie: 失败', `请确保在已登录状态下获取Cookie`)
   chavy.log(`[${cookieName}] ${subTitle}, cookie: ${cookieVal}`)
+}
+
+const queryparam = $request.url.split('?')[1]
+if (queryparam) {
+  const params = {}
+  for (param of $request.url.split('?')[1].split('&')) {
+    params[param.split('=')[0]] = param.split('=')[1]
+  }
+  const token = JSON.stringify(params)
+  if (params['csrf_token'] && chavy.setdata(token, tokenKey)) {
+    chavy.msg(`${cookieName}`, '获取Token: 成功', '')
+    chavy.log(`[${cookieName}] 获取Token: 成功, token: ${token}`)
+  }
 }
 
 function init() {
@@ -60,5 +69,4 @@ function init() {
   }
   return { isSurge, isQuanX, msg, log, getdata, setdata, get, post, done }
 }
-
 chavy.done()
