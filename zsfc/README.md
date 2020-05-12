@@ -1,45 +1,50 @@
-# 电信营业厅
+# 掌上飞车
 
-> 2020.5.6 更新签到脚本 (正则和 rewrite 类型都有变化, 需要重取 Cookie)
-
+> 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
+> 感谢[@danchaw](https://github.com/danchaw) PR
 ## 配置 (Surge)
 
 ```properties
 [MITM]
-wapside.189.cn:9001
+mwegame.qq.com
 
 [Script]
-http-request ^https:\/\/wapside.189.cn:9001\/api\/home\/sign script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10000/10000.cookie.js, requires-body=true
-cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10000/10000.js
+http-request ^https:\/\/mwegame\.qq\.com\/ams\/sign\/doSign\/month script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zsfc/zsfc.js
+cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/zsfc/zsfc.js
 ```
 
 ## 配置 (QuanX)
 
 ```properties
 [MITM]
-wapside.189.cn
+mwegame.qq.com
 
 [rewrite_local]
-# 190及以后版本
-^https:\/\/wapside.189.cn:9001\/api\/home\/sign url script-request-body 10000.cookie.js
+
+# [商店版]
+^https:\/\/mwegame\.qq\.com\/ams\/sign\/doSign\/month url script-request-header zsfc.js
+
+# [TestFlight]
+^https:\/\/mwegame\.qq\.com\/ams\/sign\/doSign\/month url script-request-header https://raw.githubusercontent.com/chavyleung/scripts/master/zsfc/zsfc.js
 
 [task_local]
-1 0 * * * 10000.js
+
+# [商店版]
+1 0 * * * zsfc.js
+
+# [TestFlight]
+1 0 * * * https://raw.githubusercontent.com/chavyleung/scripts/master/zsfc/zsfc.js
 ```
 
 ## 说明
 
-> 先在登录成功后, 再打开获取 Cookie 的脚本
-
-1. 先配置`[MITM]`
-   - Surge: wapside.189.cn:9001
-   - QuanX: wapside.189.cn
+1. 先把`mwegame.qq.com`加到`[MITM]`
 2. 再配置重写规则:
    - Surge: 把两条远程脚本放到`[Script]`
-   - QuanX: 把`10000.cookie.js`和`10000.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-3. 打开 APP 手动签到一次: 访问下右下角 `我` > `签到` (头像下面)
-4. 系统提示: `获取Cookie: 成功`
-5. 最后就可以把第 1 条脚本注释掉了
+   - QuanX: 把`nio.cookie.js`和`nio.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
+3. 打开 APP[掌上飞车](https://apps.apple.com/cn/app/%E6%8E%8C%E4%B8%8A%E9%A3%9E%E8%BD%A6/id1116903233) 然后手动签到 1 次, 系统提示: `首次写入xxxUrl成功🎉,首次写入xxxCookie成功🎉`
+4. 最后就可以把第 1 条脚本注释掉了
+5. 运行一次脚本, 如果提示重复签到, 那就算成功了!
 
 > 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
 
@@ -95,4 +100,4 @@ wapside.189.cn
 
 [@ConnersHua](https://github.com/ConnersHua)
 
-[@sazs34](https://github.com/sazs34/)
+[@danchaw](https://github.com/danchaw)
