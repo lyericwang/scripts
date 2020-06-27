@@ -1,8 +1,6 @@
 const $ = new Env('WPS')
 $.VAL_signhomeurl = $.getdata('chavy_signhomeurl_wps')
 $.VAL_signhomeheader = $.getdata('chavy_signhomeheader_wps')
-$.VAL_signwxurl = $.getdata('chavy_signwxurl_wps')
-$.VAL_signwxheader = $.getdata('chavy_signwxheader_wps')
 
 !(async () => {
   $.log('', `🔔 ${$.name}, 开始!`, '')
@@ -34,8 +32,8 @@ function loginapp() {
         $.homeinfo = JSON.parse(data)
         if ($.homeinfo.result === 'ok') {
           const headers = JSON.parse($.VAL_signhomeheader)
-          const [m, sid] = headers.Cookie.match(/wps_sid=(.*?)(;|,|$)/) || []
-          $.VAL_signwxheader = JSON.stringify({ sid })
+          const [, sid] = /wps_sid=(.*?)(;|,|$)/.exec(headers.Cookie)
+          $.sid = sid
         }
       } catch (e) {
         $.log(`❗️ ${$.name}, 执行失败!`, ` error = ${error || e}`, `response = ${JSON.stringify(response)}`, `data = ${data}`, '')
@@ -108,7 +106,7 @@ async function answerwx() {
 // 获取问题
 function getquestion() {
   return new Promise((resove) => {
-    const url = { url: 'https://zt.wps.cn/2018/clock_in/api/get_question?award=wps', headers: JSON.parse($.VAL_signwxheader) }
+    const url = { url: 'https://zt.wps.cn/2018/clock_in/api/get_question?award=wps', headers: { sid: $.sid } }
     $.get(url, (error, response, data) => {
       try {
         if (error) throw new Error(error)
@@ -126,7 +124,7 @@ function getquestion() {
 function answerquestion(optIdx) {
   return new Promise((resove) => {
     const body = `answer=${optIdx}`
-    const url = { url: 'https://zt.wps.cn/2018/clock_in/api/answer?member=wps', body, headers: JSON.parse($.VAL_signwxheader) }
+    const url = { url: 'https://zt.wps.cn/2018/clock_in/api/answer?member=wps', body, headers: { sid: $.sid } }
     $.post(url, (error, response, data) => {
       try {
         if (error) throw new Error(error)
@@ -143,7 +141,7 @@ function answerquestion(optIdx) {
 
 function signwx() {
   return new Promise((resove) => {
-    const url = { url: 'https://zt.wps.cn/2018/clock_in/api/clock_in?award=wps', headers: JSON.parse($.VAL_signwxheader) }
+    const url = { url: 'https://zt.wps.cn/2018/clock_in/api/clock_in?award=wps', headers: { sid: $.sid } }
     $.get(url, (error, response, data) => {
       try {
         if (error) throw new Error(error)
@@ -167,7 +165,7 @@ function signwx() {
 function signupwx() {
   if (!$.signwx.isSignupNeed) return null
   return new Promise((resove) => {
-    const url = { url: 'http://zt.wps.cn/2018/clock_in/api/sign_up', headers: JSON.parse($.VAL_signwxheader) }
+    const url = { url: 'http://zt.wps.cn/2018/clock_in/api/sign_up', headers: { sid: $.sid } }
     $.get(url, (error, response, data) => {
       try {
         if (error) throw new Error(error)
@@ -237,7 +235,7 @@ function getSignreward() {
 // 获取用户信息
 function getUserInfo() {
   return new Promise((resove) => {
-    const url = { url: 'https://vip.wps.cn/userinfo', headers: JSON.parse($.VAL_signwxheader) }
+    const url = { url: 'https://vip.wps.cn/userinfo', headers: { sid: $.sid } }
     $.get(url, (error, response, data) => {
       try {
         if (error) throw new Error(error)
@@ -275,7 +273,7 @@ function invite() {
     inviteActs.push(
       new Promise((resove) => {
         const body = `invite_userid=${$.userinfo.data.userid}`
-        const url = { url: 'http://zt.wps.cn/2018/clock_in/api/invite', body, headers: JSON.parse($.VAL_signwxheader) }
+        const url = { url: 'http://zt.wps.cn/2018/clock_in/api/invite', body, headers: { sid: sids[sidIdx] } }
         $.post(url, (error, response, data) => {
           try {
             if (error) throw new Error(error)
@@ -299,8 +297,13 @@ function showmsg() {
   return new Promise((resove) => {
     $.subt = ''
     $.desc = []
-    $.subt = `签到: ${/ok/.test($.signapp.result) ? '成功' : '失败'}`
-    $.subt = `签到: ${/error/.test($.signapp.result) && /recheckin/.test($.signapp.msg) ? '重复' : '失败'}`
+    if (/ok/.test($.signapp.result)) {
+      $.subt = '签到: 成功'
+    } else if (/error/.test($.signapp.result) && /recheckin/.test($.signapp.msg)) {
+      $.subt = '签到: 重复'
+    } else {
+      $.subt = '签到: 失败'
+    }
     if ($.signinfo && $.homeinfo.data[0]) {
       const current = $.homeinfo.data[0]
       $.desc.push(`连签: ${$.signinfo.data.max_days}天, 本期: ${current.end_date} (第${current.id}期)`)
@@ -345,4 +348,4 @@ function showmsg() {
 }
 
 // prettier-ignore
-function Env(t){this.name=t,this.logs=[],this.isSurge=(()=>"undefined"!=typeof $httpClient),this.isQuanX=(()=>"undefined"!=typeof $task),this.log=((...t)=>{this.logs=[...this.logs,...t],t?console.log(t.join("\n")):console.log(this.logs.join("\n"))}),this.msg=((t=this.name,s="",i="")=>{this.isSurge()&&$notification.post(t,s,i),this.isQuanX()&&$notify(t,s,i);const e=["","==============\ud83d\udce3\u7cfb\u7edf\u901a\u77e5\ud83d\udce3=============="];t&&e.push(t),s&&e.push(s),i&&e.push(i),console.log(e.join("\n"))}),this.getdata=(t=>this.isSurge()?$persistentStore.read(t):this.isQuanX()?$prefs.valueForKey(t):void 0),this.setdata=((t,s)=>this.isSurge()?$persistentStore.write(t,s):this.isQuanX()?$prefs.setValueForKey(t,s):void 0),this.get=((t,s)=>this.send(t,"GET",s)),this.wait=((t,s=t)=>i=>setTimeout(()=>i(),Math.floor(Math.random()*(s-t+1)+t))),this.post=((t,s)=>this.send(t,"POST",s)),this.send=((t,s,i)=>{if(this.isSurge()){const e="POST"==s?$httpClient.post:$httpClient.get;e(t,(t,s,e)=>{s&&(s.body=e,s.statusCode=s.status),i(t,s,e)})}this.isQuanX()&&(t.method=s,$task.fetch(t).then(t=>{t.status=t.statusCode,i(null,t,t.body)},t=>i(t.error,t,t)))}),this.done=((t={})=>$done(t))}
+function Env(s){this.name=s,this.data=null,this.logs=[],this.isSurge=(()=>"undefined"!=typeof $httpClient),this.isQuanX=(()=>"undefined"!=typeof $task),this.isNode=(()=>"undefined"!=typeof module&&!!module.exports),this.log=((...s)=>{this.logs=[...this.logs,...s],s?console.log(s.join("\n")):console.log(this.logs.join("\n"))}),this.msg=((s=this.name,t="",i="")=>{this.isSurge()&&$notification.post(s,t,i),this.isQuanX()&&$notify(s,t,i);const e=["","==============\ud83d\udce3\u7cfb\u7edf\u901a\u77e5\ud83d\udce3=============="];s&&e.push(s),t&&e.push(t),i&&e.push(i),console.log(e.join("\n"))}),this.getdata=(s=>{if(this.isSurge())return $persistentStore.read(s);if(this.isQuanX())return $prefs.valueForKey(s);if(this.isNode()){const t="box.dat";return this.fs=this.fs?this.fs:require("fs"),this.fs.existsSync(t)?(this.data=JSON.parse(this.fs.readFileSync(t)),this.data[s]):null}}),this.setdata=((s,t)=>{if(this.isSurge())return $persistentStore.write(s,t);if(this.isQuanX())return $prefs.setValueForKey(s,t);if(this.isNode()){const i="box.dat";return this.fs=this.fs?this.fs:require("fs"),!!this.fs.existsSync(i)&&(this.data=JSON.parse(this.fs.readFileSync(i)),this.data[t]=s,this.fs.writeFileSync(i,JSON.stringify(this.data)),!0)}}),this.wait=((s,t=s)=>i=>setTimeout(()=>i(),Math.floor(Math.random()*(t-s+1)+s))),this.get=((s,t)=>this.send(s,"GET",t)),this.post=((s,t)=>this.send(s,"POST",t)),this.send=((s,t,i)=>{if(this.isSurge()){const e="POST"==t?$httpClient.post:$httpClient.get;e(s,(s,t,e)=>{t&&(t.body=e,t.statusCode=t.status),i(s,t,e)})}this.isQuanX()&&(s.method=t,$task.fetch(s).then(s=>{s.status=s.statusCode,i(null,s,s.body)},s=>i(s.error,s,s))),this.isNode()&&(this.request=this.request?this.request:require("request"),s.method=t,s.gzip=!0,this.request(s,(s,t,e)=>{t&&(t.status=t.statusCode),i(null,t,e)}))}),this.done=((s={})=>this.isNode()?null:$done(s))}
